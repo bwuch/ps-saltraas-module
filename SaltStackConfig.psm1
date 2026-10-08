@@ -68,9 +68,9 @@ Function Connect-SscServer {
 
   $loginBody = @{'username'=$username; 'password'=$password; 'config_name'=$AuthSource}
   try {
-    $webRequest = Invoke-WebRequest -Uri "https://$server/account/login" -SessionVariable ws
+    $webRequest = Invoke-WebRequest -Uri "https://$server/account/login" -SessionVariable ws  -UseBasicParsing
     $ws.headers.Add('X-Xsrftoken', $webRequest.headers.'x-xsrftoken')
-    $webRequest = Invoke-WebRequest -Uri "https://$server/account/login" -WebSession $ws -method POST -body (ConvertTo-Json $loginBody)
+    $webRequest = Invoke-WebRequest -Uri "https://$server/account/login" -WebSession $ws -method POST -body (ConvertTo-Json $loginBody)  -UseBasicParsing
     $webRequestJson = ConvertFrom-JSON $webRequest.Content
     $global:DefaultSscConnection = New-Object psobject -property @{ 'SscWebSession'=$ws; 'Name'=$server; 'ConnectionDetail'=$webRequestJson; 
       'User'=$webRequestJson.attributes.config_name +'\'+ $username; 'Authenticated'=$webRequestJson.authenticated; PSTypeName='SscConnection' }
@@ -143,7 +143,7 @@ Function Get-SscData {
   try{
     $jsonBody = $(ConvertTo-Json $body -Depth 4 -Compress )
     write-debug "JSON Body: $jsonBody"
-    $output = Invoke-WebRequest -WebSession $global:DefaultSscConnection.SscWebSession -Method POST -Uri "https://$($global:DefaultSscConnection.Name)/rpc" -body $jsonBody -ContentType 'application/json'
+    $output = Invoke-WebRequest -WebSession $global:DefaultSscConnection.SscWebSession -Method POST -Uri "https://$($global:DefaultSscConnection.Name)/rpc" -body $jsonBody -ContentType 'application/json'  -UseBasicParsing
     $outputJson = (ConvertFrom-Json $output.Content)
 
     if ($outputJson.error) { Write-Error $outputJson.error }
